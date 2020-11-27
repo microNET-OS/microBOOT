@@ -61,7 +61,7 @@ EFI_STATUS get_memory_map(OUT VOID** memory_map,
  */
 EFI_STATUS debug_print_line(IN CHAR16* fmt,
 	...)
-{
+{EFI_PHY
 	/** Main bootloader application status. */
 	EFI_STATUS status;
 	/** The variadic argument list passed to the VSPrintf function. */

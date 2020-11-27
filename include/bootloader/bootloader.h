@@ -44,6 +44,7 @@ typedef struct s_boot_info {
 	Kernel_Framebuffer framebuffer;
 	UINTN memory_map_size;
 	UINTN memory_map_descriptor_size;
+	EFI_RUNTIME_SERVICES* RT;
 } Kernel_Boot_Info;
 
 /**
