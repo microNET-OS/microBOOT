@@ -232,16 +232,41 @@ _Noreturn EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle,
 		ST->ConsoleOutHandle, &gEfiGraphicsOutputProtocolGuid,
 		&graphics_output_protocol, ImageHandle,
 		NULL, EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-	if(EFI_ERROR(status)) {
+	if (EFI_ERROR(status)) {
 		Print(u"Error: Failed to open the graphics output protocol on "
 			u"the active console output device: %s\n", get_efi_error_message(status));
+	}
+
+	EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info;
+	UINTN SizeOfInfo, numModes, nativeMode;
+
+	status = uefi_call_wrapper(graphics_output_protocol->QueryMode, 4, graphics_output_protocol, graphics_output_protocol->Mode == NULL ? 0 : graphics_output_protocol->Mode->Mode, &SizeOfInfo, &info);
+	// this is needed to get the current video mode
+	if (status == EFI_NOT_STARTED)
+	status = uefi_call_wrapper(graphics_output_protocol->SetMode, 2, graphics_output_protocol, 0);
+	if (EFI_ERROR(status)) {
+		debug_print_line(u"Unable to get native mode");
+	} else {
+		nativeMode = graphics_output_protocol->Mode->Mode;
+		numModes = graphics_output_protocol->Mode->MaxMode;
+	}
+
+	for (int i = 0; i < numModes; i++) {
+		status = uefi_call_wrapper(graphics_output_protocol->QueryMode, 4, graphics_output_protocol, i, &SizeOfInfo, &info);
+		debug_print_line(u"mode %03d width %d height %d format %x%s\n",
+			i,
+			info->HorizontalResolution,
+			info->VerticalResolution,
+			info->PixelFormat,
+			i == nativeMode ? "(current)" : ""
+		);
 	}
 
 	// If we were able to obtain a protocol on the current output device handle
 	// set the graphics mode to the target and draw the boot screen.
 	if(graphics_output_protocol) {
-		status = set_graphics_mode(graphics_output_protocol, TARGET_SCREEN_WIDTH,
-			TARGET_SCREEN_HEIGHT, TARGET_PIXEL_FORMAT);
+		status = set_graphics_mode(graphics_output_protocol, info->HorizontalResolution,
+			info->VerticalResolution, info->PixelFormat);
 		if(EFI_ERROR(status)) {
 			Print(u"Fatal Error: Error setting graphics mode: %s\n",
 				get_efi_error_message(status));
