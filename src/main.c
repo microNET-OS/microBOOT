@@ -18,7 +18,6 @@
 #include <bootloader/fs.h>
 #include <bootloader/graphics.h>
 #include <bootloader/serial.h>
-#include <common/bootinfo_addr.h>
 
 #define TARGET_SCREEN_WIDTH     1024
 #define TARGET_SCREEN_HEIGHT    768
