@@ -61,7 +61,7 @@ EFI_STATUS get_memory_map(OUT VOID** memory_map,
  */
 EFI_STATUS debug_print_line(IN CHAR16* fmt,
 	...)
-{EFI_PHY
+{EFIAPI
 	/** Main bootloader application status. */
 	EFI_STATUS status;
 	/** The variadic argument list passed to the VSPrintf function. */
@@ -336,6 +336,8 @@ _Noreturn EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle,
 	boot_info->framebuffer.y_resolution = graphics_output_protocol->Mode->Info->VerticalResolution;
 
 	boot_info->verification = 0xDEADBEEFCAFECAFE;
+
+	boot_info->RT = ST->RuntimeServices;
 
 	*((uint32_t*)(graphics_output_protocol->Mode->FrameBufferBase + 4 * graphics_output_protocol->Mode->Info->PixelsPerScanLine * 300 + 4 * 200)) = 0xFFFF00;
 	*((uint32_t*)(graphics_output_protocol->Mode->FrameBufferBase + 4 * graphics_output_protocol->Mode->Info->PixelsPerScanLine * 301 + 4 * 200)) = 0xFFFF00;
