@@ -320,7 +320,7 @@ _Noreturn EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle,
 
 
 	/** Boot info struct, passed to the kernel. */
-	Kernel_Boot_Info *boot_info = (Kernel_Boot_Info *)BOOTINFO_ADDRESS;
+	Kernel_Boot_Info *boot_info;
 
 	// Set kernel boot info.
 	boot_info->memory_map = memory_map;
