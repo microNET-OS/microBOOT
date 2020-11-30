@@ -40,8 +40,8 @@ typedef struct s_framebuffer {
 
 typedef struct s_boot_info {
 	UINTN verification;
+	Kernel_Framebuffer *framebuffer;
 	EFI_MEMORY_DESCRIPTOR* memory_map;
-	Kernel_Framebuffer framebuffer;
 	UINTN memory_map_size;
 	UINTN memory_map_descriptor_size;
 	EFI_RUNTIME_SERVICES* RT;

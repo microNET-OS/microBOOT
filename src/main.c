@@ -224,18 +224,26 @@ _Noreturn EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle,
 		return status;
 	}
 
+	// Locate the graphics output protocol before and open it
+	status = uefi_call_wrapper(gBS->LocateProtocol, 3,
+		&gEfiGraphicsOutputProtocolGuid, NULL,
+		&graphics_output_protocol);
+	if (EFI_ERROR(status)) {
+		Print(u"Error: Failed to locate the graphics output protocol on "
+			u"the current firmware: %s\n", get_efi_error_message(status));
+	}
+
 	// Open the graphics output protocol from the handle for the active console
 	// output device and use it to draw the boot screen.
 	// The console out handle exposed by the System Table is documented in the
 	// UEFI Spec page 92.
-	status = uefi_call_wrapper(gBS->OpenProtocol, 6,
-		ST->ConsoleOutHandle, &gEfiGraphicsOutputProtocolGuid,
-		&graphics_output_protocol, ImageHandle,
-		NULL, EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-	if (EFI_ERROR(status)) {
-		Print(u"Error: Failed to open the graphics output protocol on "
-			u"the active console output device: %s\n", get_efi_error_message(status));
-	}
+//	status = uefi_call_wrapper(gBS->HandleProtocol, 3,
+//		ST->ConsoleOutHandle, &gEfiGraphicsOutputProtocolGuid,
+//		&graphics_output_protocol);
+//	if (EFI_ERROR(status)) {
+//		Print(u"Error: Failed to open the graphics output protocol on "
+//			u"the active console output device: %s\n", get_efi_error_message(status));
+//	}
 
 	EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info;
 	UINTN SizeOfInfo, numModes, nativeMode;
@@ -347,17 +355,22 @@ _Noreturn EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle,
 	/** Boot info struct, passed to the kernel. */
 	Kernel_Boot_Info *boot_info;
 
+	/* Framebuffer struct, containing info about the framebuffer */
+	Kernel_Framebuffer *k_framebuffer;
+	
 	// Set kernel boot info.
 	boot_info->memory_map = memory_map;
 	boot_info->memory_map_size = memory_map_size;
 	boot_info->memory_map_descriptor_size = descriptor_size;
 
-	boot_info->framebuffer.framebuffer_base_addr = graphics_output_protocol->Mode->FrameBufferBase;
-	boot_info->framebuffer.framebuffer_size = graphics_output_protocol->Mode->FrameBufferSize;
-	boot_info->framebuffer.framebuffer_mode = graphics_output_protocol->Mode->Mode;
-	boot_info->framebuffer.pixels_per_scan_line = graphics_output_protocol->Mode->Info->PixelsPerScanLine;
-	boot_info->framebuffer.x_resolution = graphics_output_protocol->Mode->Info->HorizontalResolution;
-	boot_info->framebuffer.y_resolution = graphics_output_protocol->Mode->Info->VerticalResolution;
+	k_framebuffer->framebuffer_base_addr = graphics_output_protocol->Mode->FrameBufferBase;
+	k_framebuffer->framebuffer_size = graphics_output_protocol->Mode->FrameBufferSize;
+	k_framebuffer->framebuffer_mode = graphics_output_protocol->Mode->Mode;
+	k_framebuffer->pixels_per_scan_line = graphics_output_protocol->Mode->Info->PixelsPerScanLine;
+	k_framebuffer->x_resolution = graphics_output_protocol->Mode->Info->HorizontalResolution;
+	k_framebuffer->y_resolution = graphics_output_protocol->Mode->Info->VerticalResolution;
+
+	boot_info->framebuffer = k_framebuffer;
 
 	boot_info->verification = 0xDEADBEEFCAFECAFE;
 
