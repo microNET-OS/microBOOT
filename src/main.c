@@ -237,6 +237,9 @@ _Noreturn EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle,
 	// output device and use it to draw the boot screen.
 	// The console out handle exposed by the System Table is documented in the
 	// UEFI Spec page 92.
+	//
+///////// NOTICE: removed for compatibility
+//	
 //	status = uefi_call_wrapper(gBS->HandleProtocol, 3,
 //		ST->ConsoleOutHandle, &gEfiGraphicsOutputProtocolGuid,
 //		&graphics_output_protocol);
@@ -246,6 +249,7 @@ _Noreturn EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle,
 //	}
 
 	EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info;
+	EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *pref_mode;
 	UINTN SizeOfInfo, numModes, nativeMode;
 
 	status = uefi_call_wrapper(graphics_output_protocol->QueryMode, 4, graphics_output_protocol, graphics_output_protocol->Mode == NULL ? 0 : graphics_output_protocol->Mode->Mode, &SizeOfInfo, &info);
@@ -268,7 +272,11 @@ _Noreturn EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle,
 			info->PixelFormat,
 			i == nativeMode ? "(current)" : ""
 		);
+		if (i == nativeMode)
+			pref_mode = info;
 	}
+
+	status = uefi_call_wrapper(graphics_output_protocol->QueryMode, 4, graphics_output_protocol, nativeMode, &SizeOfInfo, &info);
 
 	// If we were able to obtain a protocol on the current output device handle
 	// set the graphics mode to the target and draw the boot screen.
