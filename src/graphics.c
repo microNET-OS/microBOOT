@@ -14,11 +14,11 @@
 #include <bootloader/error.h>
 #include <bootloader/graphics.h>
 
-#define TEST_SCREEN_COL_NUM             4
+#define TEST_SCREEN_COL_NUM             1
 #define TEST_SCREEN_ROW_NUM             3
 #define TEST_SCREEN_TOTAL_TILES         TEST_SCREEN_COL_NUM * TEST_SCREEN_ROW_NUM
-#define TEST_SCREEN_PRIMARY_COLOUR      0x00FF4000
-#define TEST_SCREEN_SECONDARY_COLOUR    0x00FF80BF
+#define TEST_SCREEN_PRIMARY_COLOUR      0x28282828
+#define TEST_SCREEN_SECONDARY_COLOUR    0x000060DE
 
 /**
  * @brief Finds a video mode.

@@ -111,10 +111,6 @@ EFI_STATUS get_mem_map(OUT EFI_MEMORY_DESCRIPTOR** memory_map,
 		}
 	}
 
-	#ifdef DEBUG
-		Print(u"Debug: Allocating memory map'\n\n");
-	#endif
-
 	status = uefi_call_wrapper(gBS->AllocatePool, 3,
 		EfiLoaderData, ((*memory_map_size) + (*descriptor_size) * 5) , memory_map);
 
@@ -186,8 +182,6 @@ _Noreturn EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle,
 
 	// Initialise the UEFI lib.
 	InitializeLib(ImageHandle, SystemTable);
-
-	Print(u"Booting... \n");
 
 
 	// Disable the watchdog timer.
@@ -293,9 +287,8 @@ _Noreturn EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle,
 		draw_test_screen(graphics_output_protocol);
 	}
 
-	Print(u"\nGraphics framebuffer is located at: 0x%x\n\n", graphics_output_protocol->Mode->FrameBufferBase);
+	Print(u"\n\n\n\n\n\n\n                \n    microNET    \n                ");
 
-	Print(u"Initializing filesystem... \n");
 	// Initialise the simple file system service.
 	// This will be used to load the kernel binary.
 	status = init_file_system_service();
@@ -306,7 +299,6 @@ _Noreturn EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle,
 		return status;
 	}
 
-	Print(u"Opening root volume... \n");
 	status = uefi_call_wrapper(file_system_service.protocol->OpenVolume, 2,
 		file_system_service.protocol, &root_file_system);
 	if(EFI_ERROR(status)) {
@@ -316,11 +308,6 @@ _Noreturn EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle,
 		return status;
 	}
 
-	#ifdef DEBUG
-		Print(u"Debug: Loading Kernel image\n\n");
-	#endif
-
-	Print(u"Loading kernel... \n");
 	status = load_kernel_image(root_file_system, KERNEL_EXECUTABLE_PATH,
 		kernel_entry_point);
 
@@ -331,16 +318,6 @@ _Noreturn EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle,
 		return status;
 	}
 
-	#ifdef DEBUG
-		Print(u"Debug: Set Kernel Entry Point to: '0x%llx'\n",
-			*kernel_entry_point);
-	#endif
-
-	#ifdef DEBUG
-		Print(u"Debug: Getting memory map and exiting boot services\n\n");
-	#endif
-
-	Print(u"Getting memory map... \n");
 	// Get the memory map prior to exiting the boot service.
 	status = get_mem_map(&memory_map, &memory_map_size,
 		&memory_map_key, &descriptor_size, &descriptor_version);
@@ -383,17 +360,6 @@ _Noreturn EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle,
 	boot_info->verification = 0xDEADBEEFCAFECAFE;
 
 	boot_info->RT = ST->RuntimeServices;
-
-	*((uint32_t*)(graphics_output_protocol->Mode->FrameBufferBase + 4 * graphics_output_protocol->Mode->Info->PixelsPerScanLine * 300 + 4 * 200)) = 0xFFFF00;
-	*((uint32_t*)(graphics_output_protocol->Mode->FrameBufferBase + 4 * graphics_output_protocol->Mode->Info->PixelsPerScanLine * 301 + 4 * 200)) = 0xFFFF00;
-	*((uint32_t*)(graphics_output_protocol->Mode->FrameBufferBase + 4 * graphics_output_protocol->Mode->Info->PixelsPerScanLine * 302 + 4 * 200)) = 0xFFFF00;
-	*((uint32_t*)(graphics_output_protocol->Mode->FrameBufferBase + 4 * graphics_output_protocol->Mode->Info->PixelsPerScanLine * 300 + 4 * 201)) = 0xFFFF00;
-	*((uint32_t*)(graphics_output_protocol->Mode->FrameBufferBase + 4 * graphics_output_protocol->Mode->Info->PixelsPerScanLine * 301 + 4 * 201)) = 0xFFFF00;
-	*((uint32_t*)(graphics_output_protocol->Mode->FrameBufferBase + 4 * graphics_output_protocol->Mode->Info->PixelsPerScanLine * 302 + 4 * 201)) = 0xFFFF00;
-	*((uint32_t*)(graphics_output_protocol->Mode->FrameBufferBase + 4 * graphics_output_protocol->Mode->Info->PixelsPerScanLine * 300 + 4 * 202)) = 0xFFFF00;
-	*((uint32_t*)(graphics_output_protocol->Mode->FrameBufferBase + 4 * graphics_output_protocol->Mode->Info->PixelsPerScanLine * 301 + 4 * 202)) = 0xFFFF00;
-	*((uint32_t*)(graphics_output_protocol->Mode->FrameBufferBase + 4 * graphics_output_protocol->Mode->Info->PixelsPerScanLine * 302 + 4 * 202)) = 0xFFFF00;
-
 	// Cast pointer to kernel entry.
 	kernel_entry = (void (*)(Kernel_Boot_Info*))*kernel_entry_point;
 	// Jump to kernel entry.
